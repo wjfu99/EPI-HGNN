@@ -32,7 +32,7 @@ def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
     thre=np.array(thre)
     return recall,precision,thre
 
-setproctitle.setproctitle("HGNN@fuwenjie")
+setproctitle.setproctitle("HGNN@")
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cfg = get_config('config/config.yaml')
 
@@ -47,12 +47,12 @@ if cfg['dataset'] == 'timegeo':
     with open("datasets/Adj", 'rb') as f:
         adj = ss.csr_matrix(pkl.load(f))
 elif cfg['dataset'] == 'sim':
-    G = np.load("/data4/fuwenjie/bj-sim/hypergraph/G_un=10_rz=True.npy")
-    lbls = np.load("/data4/fuwenjie/bj-sim/hypergraph/label.npy")
+    G = np.load("/bj-sim/hypergraph/G_un=10_rz=True.npy")
+    lbls = np.load("/bj-sim/hypergraph/label.npy")
     if cfg['fts_type'] == 'time':
-        fts = np.load("/data4/fuwenjie/bj-sim/hypergraph/fts_4h_emb=4.npy")
+        fts = np.load("/bj-sim/hypergraph/fts_4h_emb=4.npy")
     elif cfg['fts_type'] == 'freq':
-        fts = np.load("/data4/fuwenjie/bj-sim/visit_frequency.npy", allow_pickle=True).item()
+        fts = np.load("/bj-sim/visit_frequency.npy", allow_pickle=True).item()
         fts = fts.todense()
 
 print('load files successfully!')

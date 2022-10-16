@@ -46,7 +46,7 @@ def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
     thre=np.array(thre)
     return recall,precision,thre
 
-setproctitle.setproctitle("HGNN@fuwenjie")
+setproctitle.setproctitle("HGNN@")
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cfg = get_config('config/GCNconfig.yaml')
 
@@ -61,14 +61,14 @@ if cfg['dataset'] == 'timegeo':
     with open("datasets/Adj", 'rb') as f:
         adj = ss.csr_matrix(pkl.load(f))
 elif cfg['dataset'] == 'sim':
-    lbls = np.load("/data4/fuwenjie/bj-sim/privacy/label.npy")
-    # lbls = np.load("/data4/fuwenjie/bj-sim/privacy/label_omicron.npy")
+    lbls = np.load("/bj-sim/privacy/label.npy")
+    # lbls = np.load("/bj-sim/privacy/label_omicron.npy")
     if cfg['fts_type'] == 'time':
-        fts = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/trace_array_4h.npy")
+        fts = np.load("/bj-sim/privacy/noposterior/trace_array_4h.npy")
         fts = fts + 1
     elif cfg['fts_type'] == 'freq':
-        fts = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/visit_frequency.npy")
-    adj = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/A_un=10_r01=True.npy")
+        fts = np.load("/bj-sim/privacy/noposterior/visit_frequency.npy")
+    adj = np.load("/bj-sim/privacy/noposterior/A_un=10_r01=True.npy")
 
 
 

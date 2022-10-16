@@ -32,7 +32,7 @@ torch.manual_seed(seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
+def remove_nan(data1,data2,data3):#
     re=[]
     prec=[]
     thre=[]
@@ -46,7 +46,7 @@ def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
     thre=np.array(thre)
     return recall,precision,thre
 
-setproctitle.setproctitle("HGNN@fuwenjie")
+setproctitle.setproctitle("HGNN@")
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cfg = get_config('config/config.yaml')
 
@@ -64,26 +64,18 @@ if cfg['dataset'] == 'timegeo':
     with open("datasets/Adj", 'rb') as f:
         adj = ss.csr_matrix(pkl.load(f))
 elif cfg['dataset'] == 'sim':
-    # G = np.load("/data4/fuwenjie/bj-sim/final_result/G_un=10_rz=True.npy")
 
-    # G1 = np.load("/data4/fuwenjie/bj-sim/privacy/noise/noconfidence/G1_un=10_rz=True.npy")
-    # G2 = np.load("/data4/fuwenjie/bj-sim/privacy/noise/noconfidence/G2_un=10_rz=True.npy")
-    # T = np.load("/data4/fuwenjie/bj-sim/privacy/noise/noconfidence/T_un=10_rm01=True.npy").astype(np.int32)
-    # lbls = np.load("/data4/fuwenjie/bj-sim/privacy/noise/noconfidence/label.npy")
-
-    G1 = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/G1_un=10_rz=True.npy")
-    G2 = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/G2_un=10_rz=True.npy")
-    T = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/T_un=10_rm01=True.npy").astype(np.int32)
-    lbls = np.load("/data4/fuwenjie/bj-sim/privacy/label.npy")
+    G1 = np.load("bj-sim/privacy/noposterior/G1_un=10_rz=True.npy")
+    G2 = np.load("bj-sim/privacy/noposterior/G2_un=10_rz=True.npy")
+    T = np.load("bj-sim/privacy/noposterior/T_un=10_rm01=True.npy").astype(np.int32)
+    lbls = np.load("bj-sim/privacy/label.npy")
     if cfg['fts_type'] == 'time':
-        fts = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/fts_{}h_emb={}.npy".format(time_interval, embedding_dim))
+        fts = np.load("bj-sim/privacy/noposterior/fts_{}h_emb={}.npy".format(time_interval, embedding_dim))
         # if cfg['fts_type'] == 'rand':
     elif cfg['fts_type'] == 'freq':
-        fts = np.load("/data4/fuwenjie/bj-sim/visit_frequency.npy", allow_pickle=True).item()
+        fts = np.load("bj-sim/visit_frequency.npy", allow_pickle=True).item()
         fts = fts.todense()
-    # elif cfg['fts_type'] == 'rand':
-    #     fts = torch.nn.init.kaiming()
-    # adj = np.load("/data4/fuwenjie/bj-sim/hypergraph/A_un=10_r01=True.npy", allow_pickle=True).item()
+
 
 
 
@@ -126,7 +118,6 @@ u = torch.Tensor(u).to(torch.device(device))
 
 # transform data to device
 fts = torch.Tensor(fts).to(device)
-# 随机初始化
 # torch.nn.init.kaiming_uniform_(fts, mode='fan_in', nonlinearity='relu')
 lbls = torch.Tensor(lbls).squeeze().long().to(device)
 # G = torch.Tensor(G).to(device)
@@ -192,13 +183,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
             with open('outputs_pro', 'wb') as f:
                 pkl.dump(outputs_pro.cpu().detach().numpy(), f)
 
-            # TP    predict 和 label 同时为1
+            # TP    
             TP += ((preds[idx] == 1) & (lbls.data[idx] == 1)).cpu().sum()
-            # TN    predict 和 label 同时为0
+            # TN    
             TN += ((preds[idx] == 0) & (lbls.data[idx] == 0)).cpu().sum()
-            # FN    predict 0 label 1
+            # FN    
             FN += ((preds[idx] == 0) & (lbls.data[idx] == 1)).cpu().sum()
-            # FP    predict 1 label 0
+            # FP    
             FP += ((preds[idx] == 1) & (lbls.data[idx] == 0)).cpu().sum()
 
             epoch_loss = loss.item()
@@ -316,7 +307,7 @@ np.savetxt('result/{} {} rec.csv'.format('HGNN_time', cfg['dataset']), temp[3])
 best_model_wts = temp[-1]
 # test for group user
 
-# group = np.load("/data4/fuwenjie/bj-sim/user_gourp/record_num_group.npy", allow_pickle=True).item()
+
 # # model_ft.eval()
 # model1 = temp[-2]
 # model1.eval()
@@ -328,9 +319,9 @@ best_model_wts = temp[-1]
 #     index = index[np.argwhere(index > train_num)[:, 0]]
 #     idx_test = index
 #     precision, recall, thresholds = precision_recall_curve(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-#     precision, recall, thresholds = remove_nan(precision, recall, thresholds)  # 去除0值
+#     precision, recall, thresholds = remove_nan(precision, recall, thresholds) 
 #     auc = metrics.roc_auc_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-#     fscore = (2 * precision * recall) / (precision + recall)  # 计算F1分数
+#     fscore = (2 * precision * recall) / (precision + recall)  
 #     acc = metrics.accuracy_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach() > thresholds[np.argmax(fscore)])
 #     group_result.append([auc, fscore.max(), acc, precision, recall])
 # for i, result in enumerate(group_result):

@@ -32,7 +32,7 @@ torch.manual_seed(seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
+def remove_nan(data1,data2,data3):#
     re=[]
     prec=[]
     thre=[]
@@ -46,7 +46,7 @@ def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
     thre=np.array(thre)
     return recall,precision,thre
 
-setproctitle.setproctitle("HGNN@fuwenjie")
+setproctitle.setproctitle("HGNN@")
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cfg = get_config('config/STGCNconfig.yml')
 
@@ -61,14 +61,14 @@ if cfg['dataset'] == 'timegeo':
     with open("datasets/Adj", 'rb') as f:
         adj = ss.csr_matrix(pkl.load(f))
 elif cfg['dataset'] == 'sim':
-    lbls = np.load("/data4/fuwenjie/bj-sim/privacy/label.npy")
-    # lbls = np.load("/data4/fuwenjie/bj-sim/privacy/label_omicron.npy")
+    lbls = np.load("/bj-sim/privacy/label.npy")
+    # lbls = np.load("/bj-sim/privacy/label_omicron.npy")
     if cfg['fts_type'] == 'time':
-        fts = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/trace_array_4h.npy")
+        fts = np.load("/bj-sim/privacy/noposterior/trace_array_4h.npy")
         fts = fts + 1
     elif cfg['fts_type'] == 'freq':
-        fts = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/visit_frequency.npy")
-    adj = np.load("/data4/fuwenjie/bj-sim/privacy/noposterior/A_un=10_r01=True.npy")
+        fts = np.load("/bj-sim/privacy/noposterior/visit_frequency.npy")
+    adj = np.load("/bj-sim/privacy/noposterior/A_un=10_r01=True.npy")
 
 
 
@@ -164,9 +164,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
             with open('outputs_pro', 'wb') as f:
                 pkl.dump(outputs_pro.cpu().detach().numpy(), f)
 
-            # TP    predict 和 label 同时为1
+            # TP    predict 和 label
             TP += ((preds[idx] == 1) & (lbls.data[idx] == 1)).cpu().sum()
-            # TN    predict 和 label 同时为0
+            # TN    predict 和 label
             TN += ((preds[idx] == 0) & (lbls.data[idx] == 0)).cpu().sum()
             # FN    predict 0 label 1
             FN += ((preds[idx] == 0) & (lbls.data[idx] == 1)).cpu().sum()
@@ -183,7 +183,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
                 print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f} Pre: {epoch_pre:.4f} Rec: {epoch_rec:.4f}')
 
             # deep copy the model
-            epoch_f1 = (2 * epoch_pre * epoch_rec) / (epoch_pre + epoch_rec)  # 计算F1分数
+            epoch_f1 = (2 * epoch_pre * epoch_rec) / (epoch_pre + epoch_rec)  # 
             if phase == 'val' and epoch_f1 > best_f1:
                 best_f1 = epoch_f1
                 best_model_wts = copy.deepcopy(model.state_dict())
@@ -206,9 +206,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
     outputs = model(fts, support)[0]
     outputs_pro = F.softmax(outputs)
     precision, recall, thresholds = precision_recall_curve(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-    precision, recall, thresholds = remove_nan(precision, recall, thresholds)  # 去除0值
+    precision, recall, thresholds = remove_nan(precision, recall, thresholds)  # 
     auc = metrics.roc_auc_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-    fscore = (2 * precision * recall) / (precision + recall)  # 计算F1分数
+    fscore = (2 * precision * recall) / (precision + recall)  #
     acc = metrics.accuracy_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach()>thresholds[np.argmax(fscore)])
     time_elapsed = time.time() - since
     print(f'\nTraining complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
