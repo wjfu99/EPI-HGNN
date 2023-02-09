@@ -1,9 +1,7 @@
 
 #Training
 model: HGNN_time
-#model: GCN
 dataset: sim
-#dataset: timegeo
 fts_type: time
 max_epoch: 1000
 n_hid: 672
