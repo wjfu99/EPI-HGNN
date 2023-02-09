@@ -159,7 +159,7 @@ class HGNN_t_conv(nn.Module):
         return x
 
 
-# 此版本的HGNNtime是
+
 class HGNN_t_conv_v2(nn.Module):
     def __init__(self, in_ft, out_ft, embedding_dim=4, time_slot=7 * 24, bias=True):
         super(HGNN_t_conv_v2, self).__init__()
@@ -226,7 +226,7 @@ class HGNN_t_conv_v2(nn.Module):
         x = torch.mm(G, x)
         return x
 
-# 做了一个折中的HGNN算法
+
 class HGNN_t_conv_v3(nn.Module):
     def __init__(self, in_ft, out_ft, embedding_dim=4, time_slot=40*48, bias=True):
         super(HGNN_t_conv_v3, self).__init__()
@@ -289,7 +289,7 @@ class HGNN_t_conv_v4(nn.Module):
             x = x + self.bias
         return x
 
-# 要做在超边的时间粒度和特征的粒度一样，
+
 class HGNN_t_conv_v5(nn.Module):
     def __init__(self, t, unit_size_x, unit_size_y, unit_num, bias=True):
         super(HGNN_t_conv_v5, self).__init__()

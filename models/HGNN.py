@@ -66,7 +66,6 @@ class HGNN_time_3(nn.Module):
         x = self.hgc3(x)
         return x
 
-# 要做在超边的时间粒度和特征的粒度一样，
 class HGNN_time(nn.Module):
     def __init__(self, n_class, t, k, dropout, unit_num, unit_size, embedding_dim, embedding_num=11459):
         super(HGNN_time, self).__init__()
