@@ -13,9 +13,8 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from models import HGNN, GCN, HGNN_time, HGNN_time_2
+from models import HGNN, GCN, HGNN_time, HGNN_time_2, HGNN_time_3, HGNN_time_4
 from config import get_config
-from datasets import load_feature_construct_H
 import scipy.sparse as ss
 import setproctitle
 from sklearn import metrics
@@ -32,7 +31,7 @@ torch.manual_seed(seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-def remove_nan(data1,data2,data3):#
+def remove_nan(data1,data2,data3):#去除0值，防止F1分数出现nan。
     re=[]
     prec=[]
     thre=[]
@@ -46,41 +45,22 @@ def remove_nan(data1,data2,data3):#
     thre=np.array(thre)
     return recall,precision,thre
 
-setproctitle.setproctitle("HGNN@")
+setproctitle.setproctitle("HGNN@fuwenjie")
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 cfg = get_config('config/config.yaml')
 
 embedding_dim = 4
-time_interval = 4
 region_num = 11459
+un = 10
+time_interval = 4
 
-if cfg['dataset'] == 'timegeo':
-    with open("datasets/G_un=7_rz=True", 'rb') as f:
-        G = pkl.load(f)
-    with open("datasets/New_label", 'rb') as f:
-        lbls = pkl.load(f)
-    with open("datasets/fts", 'rb') as f:
-        fts = pkl.load(f)
-    with open("datasets/Adj", 'rb') as f:
-        adj = ss.csr_matrix(pkl.load(f))
-elif cfg['dataset'] == 'sim':
+G1 = np.load("./dataset/G1_un=10_rz=True.npy")
+G2 = np.load("./dataset/G2_un=10_rz=True.npy")
+T = np.load("./dataset/T_un=10_rm01=True.npy").astype(np.int32)
+lbls = np.load("./dataset/label.npy")
+fts = np.load("./dataset/trace_array_{}h.npy".format(time_interval))
+fts = fts + 1
 
-    G1 = np.load("bj-sim/privacy/noposterior/G1_un=10_rz=True.npy")
-    G2 = np.load("bj-sim/privacy/noposterior/G2_un=10_rz=True.npy")
-    T = np.load("bj-sim/privacy/noposterior/T_un=10_rm01=True.npy").astype(np.int32)
-    lbls = np.load("bj-sim/privacy/label.npy")
-    if cfg['fts_type'] == 'time':
-        fts = np.load("bj-sim/privacy/noposterior/fts_{}h_emb={}.npy".format(time_interval, embedding_dim))
-        # if cfg['fts_type'] == 'rand':
-    elif cfg['fts_type'] == 'freq':
-        fts = np.load("bj-sim/visit_frequency.npy", allow_pickle=True).item()
-        fts = fts.todense()
-
-
-
-
-# adj = hgut.preprocess_adj(adj)
-# adj = adj.todense()
 print('load files successfully!')
 
 # setting parameters
@@ -104,26 +84,17 @@ idx_test = np.array(range(train_num, sample_num))
 # G = hgut.generate_G_from_H(H)
 # print('generate G successfully!')
 n_class = int(lbls.max()) + 1
-device = torch.device('cuda:1')
+device = torch.device('cuda:0')
 
-
-# make mask of HT
-M_HT = np.zeros((edge_num, fts.shape[1]), dtype=np.int32)
-for i, t in enumerate(T):
-    M_HT[i, :int((t[1]+1)*embedding_dim/(time_interval*2))] = 1
-
-time_slot = int(40*48/(time_interval*2))
-u = np.kron(np.triu(np.ones((time_slot, time_slot))), np.ones((embedding_dim, embedding_dim)))
-u = torch.Tensor(u).to(torch.device(device))
 
 # transform data to device
-fts = torch.Tensor(fts).to(device)
+fts = torch.Tensor(fts).long().to(device)
+# 随机初始化
 # torch.nn.init.kaiming_uniform_(fts, mode='fan_in', nonlinearity='relu')
 lbls = torch.Tensor(lbls).squeeze().long().to(device)
 # G = torch.Tensor(G).to(device)
 G1 = torch.Tensor(G1).to(device)
 G2 = torch.Tensor(G2).to(device)
-ht_m = torch.Tensor(M_HT).to(device)
 # adj = torch.Tensor(adj).to(device)
 parm = {}
 parm1 = {}
@@ -164,7 +135,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
             with torch.set_grad_enabled(phase == 'train'):
 
                 # outputs = model(fts, support)
-                outputs = model(fts, G1, G2, ht_m, u)
+                outputs = model(fts, G1, G2)
                 loss = criterion(outputs[idx], lbls[idx])
                 _, preds = torch.max(outputs, 1)
 
@@ -183,13 +154,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
             with open('outputs_pro', 'wb') as f:
                 pkl.dump(outputs_pro.cpu().detach().numpy(), f)
 
-            # TP    
+            # TP    predict 和 label 同时为1
             TP += ((preds[idx] == 1) & (lbls.data[idx] == 1)).cpu().sum()
-            # TN    
+            # TN    predict 和 label 同时为0
             TN += ((preds[idx] == 0) & (lbls.data[idx] == 0)).cpu().sum()
-            # FN    
+            # FN    predict 0 label 1
             FN += ((preds[idx] == 0) & (lbls.data[idx] == 1)).cpu().sum()
-            # FP    
+            # FP    predict 1 label 0
             FP += ((preds[idx] == 1) & (lbls.data[idx] == 0)).cpu().sum()
 
             epoch_loss = loss.item()
@@ -223,7 +194,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    outputs = model(fts, G1, G2, ht_m, u)
+    model.eval()
+    outputs = model(fts, G1, G2)
     outputs_pro = F.softmax(outputs)
 
     precision, recall, thresholds = precision_recall_curve(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
@@ -251,18 +223,20 @@ elif cfg['model'] == "HGNN":
     model = HGNN
     support = G
 elif cfg['model'] == "HGNN_time":
-    model = HGNN_time_2
+    model = HGNN_time_4
     support = (G1, G2)
 else:
     print("model {} is not defined".format(cfg['model']))
     exit()
-model_ft = model(in_ch=fts.shape[1],
+model_ft = model(
                 n_class=n_class,
-                n_hid=cfg['n_hid'],
+                 t=T,
+                 k=[8, 8],
                 dropout=cfg['drop_out'],
-                 time_slot=time_slot,
-                 embedding_dim=embedding_dim)
-                 # embedding_num=region_num)
+                unit_num=un,
+                unit_size=int(4*24/time_interval),
+                 embedding_dim=embedding_dim,
+                 embedding_num=region_num)
 # model_ft = torch.nn.DataParallel(model_ft, device_ids=[1, 2, 3, 4])
 model_ft = model_ft.to(device)
 for name, parameters in model_ft.named_parameters():
@@ -306,26 +280,28 @@ np.savetxt('result/{} {} rec.csv'.format('HGNN_time', cfg['dataset']), temp[3])
 
 best_model_wts = temp[-1]
 # test for group user
-
-
+#
+# group = np.load("/data4/fuwenjie/bj-sim/user_gourp/record_num_group.npy", allow_pickle=True).item()
 # # model_ft.eval()
 # model1 = temp[-2]
 # model1.eval()
 # # model1 = model1.load_state_dict(best_model_wts)
-# outputs = model1(fts, G1, G2, ht_m, u)
+# outputs = model1(fts, G1, G2)
 # outputs_pro = F.softmax(outputs)
 # group_result = []
 # for _, index in group.items():
 #     index = index[np.argwhere(index > train_num)[:, 0]]
+#
 #     idx_test = index
+#     infected_rate = lbls[idx_test].cpu().numpy().sum()/len(idx_test)
 #     precision, recall, thresholds = precision_recall_curve(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-#     precision, recall, thresholds = remove_nan(precision, recall, thresholds) 
+#     precision, recall, thresholds = remove_nan(precision, recall, thresholds)  # 去除0值
 #     auc = metrics.roc_auc_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach())
-#     fscore = (2 * precision * recall) / (precision + recall)  
+#     fscore = (2 * precision * recall) / (precision + recall)  # 计算F1分数
 #     acc = metrics.accuracy_score(lbls[idx_test].cpu(), outputs_pro[idx_test, 1].cpu().detach() > thresholds[np.argmax(fscore)])
-#     group_result.append([auc, fscore.max(), acc, precision, recall])
+#     group_result.append([auc, fscore.max(), infected_rate, acc, precision, recall])
+# fscore = [g[1] for g in group_result]
+# infected_rate = [g[2] for g in group_result]
 # for i, result in enumerate(group_result):
 #     np.savetxt('result/group/{} {} pre{}.csv'.format('HGNN_time', cfg['dataset'], i), result[3])
 #     np.savetxt('result/group/{} {} rec{}.csv'.format('HGNN_time', cfg['dataset'], i), result[4])
-# # if __name__ == '__main__':
-#     _main()
