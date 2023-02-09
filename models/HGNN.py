@@ -5,67 +5,6 @@ from models.layers import HGNN_t_conv_v2, HGNN_t_conv_v3, HGNN_t_conv_v4, GraphA
 import torch.nn.functional as F
 import math
 
-# class HGNN(nn.Module):
-#     def __init__(self, in_ch, n_class, n_hid, dropout=0.5):
-#         super(HGNN, self).__init__()
-#         self.dropout = dropout
-#         self.hgc1 = HGNN_conv(in_ch, n_hid)
-#         self.hgc2 = nn.Linear(n_hid, n_hid)
-#         self.hgc3 = nn.Linear(n_hid, n_class)
-#
-#
-#     def forward(self, x, G):
-#         x = F.relu(self.hgc1(x, G))
-#         x = F.dropout(x, self.dropout)
-#         x = F.relu(self.hgc2(x))
-#         x = F.dropout(x, self.dropout)
-#         x = self.hgc3(x)
-#         return x
-
-class HGNN(nn.Module):
-    def __init__(self, in_ch, n_class, n_hid, dropout=0.5):
-        super(HGNN, self).__init__()
-        self.dropout = dropout
-        self.hgc1 = HGNN_conv(in_ch, in_ch)
-        self.hgc2 = HGNN_conv(in_ch, in_ch)
-        self.hgc3 = nn.Linear(in_ch, n_class)
-
-
-    def forward(self, x, G):
-        x = F.relu(self.hgc1(x, G))
-        x = F.dropout(x, self.dropout)
-        x = F.relu(self.hgc2(x, G))
-        x = F.dropout(x, self.dropout)
-        x = self.hgc3(x)
-        return x
-
-
-
-
-
-
-class HGNN_time_3(nn.Module):
-    def __init__(self, in_ch, n_class, n_hid, dropout=0.5, time_slot=40*48, embedding_dim=10, embedding_num=11459):
-        super(HGNN_time_3, self).__init__()
-        self.dropout = dropout
-        self.embedding = nn.Embedding(embedding_num+1, embedding_dim, padding_idx=0)
-        self.hgc1 = HGNN_t_conv_v4(in_ch, in_ch, time_slot=time_slot, embedding_dim=embedding_dim)
-        self.hgc2 = HGNN_t_conv_v4(in_ch, in_ch, time_slot=time_slot, embedding_dim=embedding_dim)
-        self.hgc3 = nn.Linear(in_ch, n_class)
-
-
-    def forward(self, x, G1, G2, ht_m, u):
-        x = F.relu(self.embedding(x))
-        # x = torch.reshape(x, (15279, 10, 24, -1))
-        # x = torch.mean(x, 2)
-        x = torch.reshape(x, (15279, -1))
-        x = F.relu(self.hgc1(x, G1, G2, ht_m, u))
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = F.relu(self.hgc2(x, G1, G2, ht_m, u))
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = self.hgc3(x)
-        return x
-
 class HGNN_time(nn.Module):
     def __init__(self, n_class, t, k, dropout, unit_num, unit_size, embedding_dim, embedding_num=11459):
         super(HGNN_time, self).__init__()
