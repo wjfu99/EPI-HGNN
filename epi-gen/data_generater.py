@@ -37,7 +37,7 @@ def gleam_epidemic(pop_info,period,ori,end):
                         pop_info[info]['state'] = 'R'
     return pop_info
 
-#应该是处理最后的尾巴数据的， 其他基本和gleam epidemic基本一样。
+
 def on_gleam_epidemic(pop_info, ori, period):
     trace_array = []
     for info in pop_info:
@@ -64,7 +64,7 @@ def on_gleam_epidemic(pop_info, ori, period):
                         pop_info[info]['state'] = 'R'
     return pop_info
 
-#num是核酸检测次数，period是核算检测隔的天数。
+
 def isolate(pop_info,num,period):
     sample_dict = {}
     new_dict = {}
@@ -91,7 +91,7 @@ def isolate(pop_info,num,period):
         for j in sample_result:
             if pop_info[j]['state']!='S':
                 iso[i][j]=pop_info[j]
-        # 隔离核酸检测出感染的人
+
         for j in pop_info:
             if j not in sample_result:
                 new_info[j]=pop_info[j]
@@ -116,9 +116,7 @@ def main():
     global Region_num
     global Mu
     global Beta
-    #聚合后的区域是661
-    # Region_num = 661
-    #聚合前区域个数
+
     Region_num = 11459
     parameters = 'Omicron'
     if parameters == 'Omicron':

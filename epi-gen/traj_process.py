@@ -23,7 +23,7 @@ def get_max(arr):
     max_last=sorted(uu1,key=lambda x:x[1])
     return max_last[-1][0]
 
-# 填充轨迹，轨迹缺失部分用-1来替代
+
 def map_user_dict(start_time, end_time, user_traj):
     user_dict = {}
     for u in tqdm(user_traj):
@@ -78,19 +78,19 @@ def data_process_save(all_dict, poi_id):
     np.save('ori_data_old.npy', a2d)
 
 def main():
-    # 这里导入的轨迹已经是poi的id了
+
     user_traj = np.load('final_user.npy', allow_pickle=True).item()
     first, last = count_first_and_last(user_traj)
-    #找到最多人轨迹起始、结束的时间点
+
     start_time = get_max(first)
     end_time = get_max(last)
-    # 填充轨迹，轨迹缺失部分用-1来替代, 并且这里改成半小时为粒度的
+
     user_dict = map_user_dict(start_time, end_time, user_traj)
-    # user_dict还是以usrid的这里重新划分id
+
     user_id, all_dict = id_map(user_dict)
-    # locations所有poi_id的set poi_id原始poiid对应新分的id
+
     locations, trace_array, poi_id = traj_count_poi(user_traj, all_dict)
-    # 新增的poi_区域聚合之后的id
+
     # poi_id = np.load("region_cluster/region_id.npy", allow_pickle=True).item()
     data_process_save(all_dict, poi_id)
 
