@@ -39,39 +39,9 @@ class HGNN(nn.Module):
         x = self.hgc3(x)
         return x
 
-class HGNN_time(nn.Module):
-    def __init__(self, in_ch, n_class, n_hid, dropout=0.5):
-        super(HGNN_time, self).__init__()
-        self.dropout = dropout
-        self.hgc1 = HGNN_t_conv_v3(in_ch, in_ch)
-        self.hgc2 = HGNN_t_conv_v3(in_ch, in_ch)
-        self.hgc3 = nn.Linear(in_ch, n_class)
 
 
-    def forward(self, x, G):
-        x = F.relu(self.hgc1(x, G))
-        x = F.dropout(x, self.dropout)
-        x = F.relu(self.hgc2(x, G))
-        x = F.dropout(x, self.dropout)
-        x = self.hgc3(x)
-        return x
 
-class HGNN_time_2(nn.Module):
-    def __init__(self, in_ch, n_class, n_hid, dropout=0.5, time_slot=40*48, embedding_dim=10):
-        super(HGNN_time_2, self).__init__()
-        self.dropout = dropout
-        self.hgc1 = HGNN_t_conv_v4(in_ch, in_ch, time_slot=time_slot, embedding_dim=embedding_dim)
-        self.hgc2 = HGNN_t_conv_v4(in_ch, in_ch, time_slot=time_slot, embedding_dim=embedding_dim)
-        self.hgc3 = nn.Linear(in_ch, n_class)
-
-
-    def forward(self, x, G1, G2, ht_m, u):
-        x = F.relu(self.hgc1(x, G1, G2, ht_m, u))
-        x = F.dropout(x, self.dropout)
-        x = F.relu(self.hgc2(x, G1, G2, ht_m, u))
-        x = F.dropout(x, self.dropout)
-        x = self.hgc3(x)
-        return x
 
 # 加入embedding层
 class HGNN_time_3(nn.Module):
@@ -97,9 +67,9 @@ class HGNN_time_3(nn.Module):
         return x
 
 # 要做在超边的时间粒度和特征的粒度一样，
-class HGNN_time_4(nn.Module):
+class HGNN_time(nn.Module):
     def __init__(self, n_class, t, k, dropout, unit_num, unit_size, embedding_dim, embedding_num=11459):
-        super(HGNN_time_4, self).__init__()
+        super(HGNN_time, self).__init__()
         self.dropout = dropout
         self.embedding = nn.Embedding(embedding_num+1, embedding_dim, padding_idx=0)
         self.hgc1 = HGNN_t_conv_v5(t, unit_size_x=k[0], unit_size_y=unit_size*embedding_dim, unit_num=unit_num)

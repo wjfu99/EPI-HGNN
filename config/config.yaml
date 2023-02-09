@@ -1,7 +1,7 @@
 
 #Training
 model: HGNN_time
-dataset: sim
+dataset: primitive
 fts_type: time
 max_epoch: 1000
 n_hid: 672

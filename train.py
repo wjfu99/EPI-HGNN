@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from models import HGNN, GCN, HGNN_time, HGNN_time_2, HGNN_time_3, HGNN_time_4
+from models import HGNN, GCN, HGNN_time
 from config import get_config
 import scipy.sparse as ss
 import setproctitle
@@ -57,7 +57,10 @@ time_interval = 4
 G1 = np.load("./dataset/G1_un=10_rz=True.npy")
 G2 = np.load("./dataset/G2_un=10_rz=True.npy")
 T = np.load("./dataset/T_un=10_rm01=True.npy").astype(np.int32)
-lbls = np.load("./dataset/label.npy")
+if cfg['dataset'] == 'primitive':
+    lbls = np.load("./dataset/label.npy")
+elif cfg['dataset']=='omicron':
+    lbls = np.load("./dataset/label_omicron.npy")
 fts = np.load("./dataset/trace_array_{}h.npy".format(time_interval))
 fts = fts + 1
 
@@ -203,19 +206,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
 print('Configuration -> Start')
 pp.pprint(cfg)
 print('Configuration -> End')
+
 global support
-if cfg['model'] == "GCN":
-    model = GCN
-    support = adj
-elif cfg['model'] == "HGNN":
-    model = HGNN
-    support = G
-elif cfg['model'] == "HGNN_time":
-    model = HGNN_time_4
-    support = (G1, G2)
-else:
-    print("model {} is not defined".format(cfg['model']))
-    exit()
+model = HGNN_time
+support = (G1, G2)
+
 model_ft = model(
                 n_class=n_class,
                  t=T,
