@@ -13,9 +13,9 @@ trace_array = np.load('../privacy/noposterior/trace_array.npy')
 #     temp = np.bincount(trace_array[i, :])
 # time_slot = trace_array.shape[1]
 
-# 使用稀疏矩阵
+
 vs_time_matrix = ss.dok_matrix((user_num, region_num))
-# 使用dense矩阵
+
 vs_time_matrix = np.zeros((user_num, region_num), dtype=np.int32)
 
 for user in tqdm(range(trace_array.shape[0])):

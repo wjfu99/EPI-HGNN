@@ -20,7 +20,7 @@ def generate_G_from_H(H):
 
     invDE = ss.diags(np.power(DE, -1).flatten())
     DV2 = np.power(DV, -0.5).flatten()
-    # 去除掉DV2中的nan、inf值
+
     DV2[np.isinf(DV2)] = 0
     DV2[np.isnan(DV2)] = 0
     DV2 = ss.diags(DV2)

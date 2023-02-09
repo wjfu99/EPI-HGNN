@@ -43,7 +43,7 @@ class HGNN(nn.Module):
 
 
 
-# 加入embedding层
+
 class HGNN_time_3(nn.Module):
     def __init__(self, in_ch, n_class, n_hid, dropout=0.5, time_slot=40*48, embedding_dim=10, embedding_num=11459):
         super(HGNN_time_3, self).__init__()

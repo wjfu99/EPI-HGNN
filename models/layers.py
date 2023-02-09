@@ -256,7 +256,7 @@ class HGNN_t_conv_v3(nn.Module):
         x = torch.mm(G, x)
         return x
 
-# 基于折中算法的对element wise进行改进
+
 class HGNN_t_conv_v4(nn.Module):
     def __init__(self, in_ft, out_ft, embedding_dim=10, time_slot=40*48, bias=True):
         super(HGNN_t_conv_v4, self).__init__()

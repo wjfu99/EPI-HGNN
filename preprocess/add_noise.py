@@ -13,7 +13,7 @@ obfuscated_itself = True
 # ori_data = np.load('ori_data.npy', allow_pickle=True).item()
 ori_data_old = np.load('ori_data_old.npy', allow_pickle=True).item()
 # %%
-# poi_id是我们划分之后的所有poi
+
 poi_id = np.load('poi_id.npy',allow_pickle=True).item()
 poi_id = dict(zip(poi_id.values(), poi_id.keys()))
 poi_loc = np.load('poi_loc.npy', allow_pickle=True).item()
@@ -39,7 +39,7 @@ for eps in tqdm([int(_*100) for _ in [0.5]]):
     for usr_id, usr in tqdm(ori_data_old.items(), leave=False):
         if obfuscated_unique:
             poi_set = set(usr['trace'])
-            # 错误在这里
+            
             noise_data[usr_id]['trace'] = np.array(usr['trace'])
             for poi in poi_set:
                 if poi >= 0:
@@ -52,7 +52,7 @@ for eps in tqdm([int(_*100) for _ in [0.5]]):
                         assert obfuscate_loc != poi_loc
                     # trace = usr['trace']
                     trace = noise_data[usr_id]['trace']
-                    # 这里也需要重新考虑一下
+                    
                     noise_data[usr_id]['trace'] = np.where(np.array(usr['trace']) == poi, obfuscate_loc, trace)
                     # idxs = np.arrry(usr['trace']) == poi
                     # noise_data[usr_id]['trace'][idxs] = obfuscate_loc

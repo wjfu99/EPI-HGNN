@@ -12,32 +12,32 @@ import random
 # graph = np.load('final_result/graph_dict.npy', allow_pickle=True).item()
 # sample_result = np.load('final_result/sample_result.npy', allow_pickle=True).item()
 
-# 这下面两个数据是一样的
+
 per_data = np.load('../region_cluster/per_data_old.npy', allow_pickle=True).item()
 # per_data1 = np.load('../ori_data_old.npy', allow_pickle=True).item()
-# 这里是使用加噪声的数据
+
 eps = 400
-# m 为只查看最近m近的点
+
 m = 10
 Pop_num = 15279
-# 聚合后的区域是661
+
 # Region_num = 661
-# 聚合前区域个数
+
 Region_num = 11459
 un = 10
 noise_data = True
 obfuscated_unique = True
-# 是否考虑一段时间地点出现频率对配套算法的构建
+
 freq = False
 truncation = False
 rz = True
-# 是否开启后验概率
+
 posterior = True
 if obfuscated_unique:
     ori_data = np.load('../obfuscate_data/ori_data_eps={}.npy'.format(eps), allow_pickle=True).item()
 else:
     ori_data = np.load('../obfuscate_data_old/ori_data_eps={}.npy'.format(eps), allow_pickle=True).item()
-# 因为之前昌正的代码会有遗留数据，所以取[0]
+
 if noise_data:
     pop_info = ori_data
 else:
@@ -73,10 +73,10 @@ def construct_hyper_network(trace_array, unique_num=1, rm_zero=True):
 
     for day in tqdm(range(unique_num)):
 
-        # 差不多在这里引入我们差分的设计
+        
         temp_trace = trace[day]
         (pop_num, time_num) = temp_trace.shape
-        # t是生成作为一个mask
+        
         t[day*Region_num: (day+1)*Region_num, :] = [day*unit_len, (day+1)*unit_len - 1]
         # t[day*Region_num:(day+1)*Region_num, day*(time_num*Embedding_dim):(day+1)*(time_num*Embedding_dim)] = 1
         for i in range(pop_num):
@@ -84,16 +84,16 @@ def construct_hyper_network(trace_array, unique_num=1, rm_zero=True):
             region_num = Counter(temp_trace[i])
             n = temp_trace.shape[1] - region_num[-1]
             for region in region_sets:
-                # 不计算轨迹缺失的区域
+                
                 if region >= 0:
                     if posterior:
                         # loc = loc_id_dict[poi_loc[str[region]]]
                         loc = poi_loc[str(poi_id[region])]
                         distance, nearest_m_id = kd_tree.query(loc, k=m)
                         c = np.exp(-eps*distance)
-                        # 取出最近几个点的坐标
+                       
                         nearest_m_pts = kd_tree.data[nearest_m_id]
-                        # 记录每个坐标点的poi个数, poi id list
+                        
                         poi_num, poi_lists = [], []
                         for pts in nearest_m_pts:
                             poi_lists.append(loc_id_dict[tuple(pts)])
@@ -102,7 +102,7 @@ def construct_hyper_network(trace_array, unique_num=1, rm_zero=True):
                         c = c / c.sum()
                         for c_idx, poi_list in enumerate(poi_lists):
                             for poi in poi_list:
-                                # 我们这里采用累加的方式, 每个用户在一个时间段下所有边的权重和为1
+                                
                                 if freq:
                                     h[i][day * Region_num + poi] += c[c_idx] / (len(poi_list) * n) * region_num[region]
                                 else:
@@ -121,7 +121,7 @@ def construct_hyper_network(trace_array, unique_num=1, rm_zero=True):
                 # idx, w = list(zip(*t))
                 h[i] = 0
                 h[i][idx] = w
-            # for test confidence的方法
+            
             # w = h[i]
             # idx = w > 0
             # idx1 = list(np.argwhere(idx == True).flatten())
@@ -131,7 +131,7 @@ def construct_hyper_network(trace_array, unique_num=1, rm_zero=True):
     if rm_zero:
         # temp = np.any(h, axis=0)
         temp = np.count_nonzero(h, axis=0)
-        # 删除只有一个节点和没有节点的边
+        
         temp = np.where(temp > 1, True, False)
         h = h[:, temp]
         t = t[temp, :]
