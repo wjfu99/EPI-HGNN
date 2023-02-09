@@ -1,10 +1,37 @@
 # Mobility Data Driven Privacy-preserving Model For COVID-19 Case Detection
 
-1. Environment Requirements
-* Ubuntu 18.04
-* Anaconda with Python 3.6
-* CUDA 11.4
+This is the Pytorch implementation of the privacy-preserving model for COVID-19 case detection.
 
-Note: The specific python package list of our environment is included in the requirements.txt. The pytorch version can be 1.6~1.9. The installation may need several minutes if there is no environmental conflicts.
+![Architecture of our proposed system.](Overview.png)
 
-2. Hardware requirements needs a Linux server with larger than 32GB memory, GPU with more than 12GB memory is recommended.
+## Requirements
+
+- torch>=1.7.0
+- numpy>=1.23.4
+- scikit-learn>=1.1.3
+- tensorboard>=2.11.0
+- tqdm>=4.64.1
+
+Dependency can be installed with the following command:
+
+
+```bash
+pip install -r requirements.txt
+```
+
+## Data Preparation
+For the consideration of the user privacy, and avoid malicious usage of mobility data,
+the original mobility data is not publicly released. 
+We will instead make the dataset available upon request to the corresponding author to researchers in the field for scientific purposes.
+
+The preprocessed files (graph construction files, health status labels, etc.) for **Basic** scenario and **Larger** scenario,
+i.e., `/basic` and `/larger`, are available at `/datasets/beijing`, and should be decompressed and put into the folder `/datasets/beijing`.
+
+## Model Training
+
+Here are commands for training the model on both **Basic** scenario and **Larger** scenario.
+
+
+```bash
+python train.py
+```
