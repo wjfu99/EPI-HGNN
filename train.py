@@ -18,7 +18,7 @@ from config import get_config
 import scipy.sparse as ss
 import setproctitle
 from sklearn import metrics
-from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import precision_recall_curve, accuracy_score, roc_auc_score
 
 seed = 123
 
@@ -121,8 +121,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
             else:
                 model.eval()  # Set model to evaluate mode
 
-            running_loss = 0.0
-            running_corrects = 0
             TP = 0
             TN = 0
             FP = 0
@@ -145,29 +143,19 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25, print_fre
                     optimizer.step()
                     scheduler.step()
 
-            # statistics
-            running_loss += loss.item() * fts.size(0)
-            running_corrects += torch.sum(preds[idx] == lbls.data[idx])
-            outputs_pro = F.softmax(outputs)
-            with open('preds', 'wb') as f:
-                pkl.dump(preds.cpu().detach().numpy(), f)
-            with open('outputs_pro', 'wb') as f:
-                pkl.dump(outputs_pro.cpu().detach().numpy(), f)
-
-            # TP    predict 和 label 同时为1
-            TP += ((preds[idx] == 1) & (lbls.data[idx] == 1)).cpu().sum()
-            # TN    predict 和 label 同时为0
-            TN += ((preds[idx] == 0) & (lbls.data[idx] == 0)).cpu().sum()
-            # FN    predict 0 label 1
-            FN += ((preds[idx] == 0) & (lbls.data[idx] == 1)).cpu().sum()
-            # FP    predict 1 label 0
-            FP += ((preds[idx] == 1) & (lbls.data[idx] == 0)).cpu().sum()
-
+            
+            prob = F.softmax(outputs, dim=1).cpu().detach()
+            precision, recall, thresholds = precision_recall_curve(lbls[idx].cpu(),
+                                                                   prob[idx, 1])
+            fscore = (2 * precision * recall) / (precision + recall + 10e-6)
+            epoch_f1 = fscore.max()
+            max_f1_index = np.argmax(fscore)
+            threshold = thresholds[max_f1_index]
+            epoch_pre = precision[max_f1_index]
+            epoch_rec = recall[max_f1_index]
+            epoch_auc = roc_auc_score(lbls[idx].cpu(), prob[idx, 1])
             epoch_loss = loss.item()
-            epoch_acc = running_corrects.double() / len(idx)
-            epoch_pre = TP.double() / (TP + FP)
-            epoch_rec = TP.double() / (TP + FN)
-            acc = (TP + TN).double() / (TP + TN + FP + FN)
+            epoch_acc = accuracy_score(lbls[idx].cpu(), prob[idx, 1] > threshold)
 
             if epoch % print_freq == 0:
                 print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f} Pre: {epoch_pre:.4f} Rec: {epoch_rec:.4f}')
