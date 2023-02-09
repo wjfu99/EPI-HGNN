@@ -25,18 +25,3 @@ def get_config(dir='config/config.yaml'):
     return cfg
 
 
-def check_dir(folder, mk_dir=True):
-    if not osp.exists(folder):
-        if mk_dir:
-            print(f'making direction {folder}!')
-            os.mkdir(folder)
-        else:
-            raise Exception(f'Not exist direction {folder}')
-
-
-def check_dirs(cfg):
-    check_dir(cfg['data_root'], mk_dir=False)
-
-    check_dir(cfg['result_root'])
-    check_dir(cfg['ckpt_folder'])
-    check_dir(cfg['result_sub_folder'])
