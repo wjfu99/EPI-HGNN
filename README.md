@@ -22,8 +22,7 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-For the consideration of the user privacy, and avoid malicious usage of mobility data,
-the original mobility data is not publicly released. 
+For the consideration of the user privacy, and avoid malicious usage of mobility data,the original mobility data is not publicly released. 
 We will instead make the dataset available upon request to the corresponding author to researchers in the field for scientific purposes.
 
 The preprocessed files (graph construction files, health status labels, etc.) for **SARS-CoV-2** dataset and **Omicron** dataset, are available at `dataset.tar.gz`, and should be decompressed and put into the folder `./dataset/` with the following command:
@@ -41,7 +40,8 @@ Here are commands for training the model on both **SARS-CoV-2** dataset and **Om
 python train.py
 ```
 
-To train on the different datset, please manually modify the _"dataset"_ item in the config file `.config/config.yaml`.
+To train on the different datset, 
+please manually modify the _"dataset"_ item in the config file `.config/config.yaml`.
 
 * ### SARS-CoV-2 Dataset
 
