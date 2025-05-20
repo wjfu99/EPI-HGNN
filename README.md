@@ -1,4 +1,4 @@
-# Mobility Data Driven Privacy-preserving Model For COVID-19 Case Detection
+# (TIST) Mobility Data Driven Privacy-preserving Model for Detecting High Risk Infection Cases
 
 This is the Pytorch implementation of the privacy-preserving model for COVID-19 case detection.
 
